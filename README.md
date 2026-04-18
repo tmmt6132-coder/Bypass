@@ -1,19 +1,13 @@
+# ⚡ Ruijie Turbo Engine v2.5
+Professional Captive Portal Bypass Tool.
 
-# 🚀 Turbo Network Engine v2
+### ✨ Features
+- **No Key Required:** Fully unlocked for the community.
+- **High-Speed Pings:** Multi-threaded engine to keep connection alive.
+- **Auto-Detection:** Detects Ruijie and other WiFiDog portals instantly.
 
-Captive Portal (WiFi Login) တွေကို အလိုအလျောက် ပတ်သက်ဆက်နွယ်ပြီး Network တည်ငြိမ်အောင် ပြုလုပ်ပေးမည့် Script ဖြစ်ပါသည်။
-
-## 🛠 တပ်ဆင်အသုံးပြုနည်း (Termux/Linux)
-
+### 🚀 How to use
 ```bash
-# Repository ကို Clone လုပ်ပါ
-git clone [https://github.com/tmmt6132-coder/Bypass.git](https://github.com/tmmt6132-coder/Bypass.git)
-
-# Folder ထဲသို့ဝင်ပါ
-cd Bypass
-
-# လိုအပ်သည်များကို Install လုပ်ပါ
-pip install requests urllib3
-
-# Script ကို Run ပါ
-python turbo_engine.py
+git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
+cd your-repo-name
+python ruijie_turbo.py
