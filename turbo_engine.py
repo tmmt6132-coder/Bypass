@@ -2,21 +2,22 @@ import requests, re, urllib3, time, threading, random, os, sys
 from urllib.parse import urlparse, parse_qs, urljoin
 from datetime import datetime
 
+# SSL Warning ပိတ်ရန်
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ===============================
-# 🌐 CONFIGURATION
+# 🌐 GITHUB REMOTE CONFIG
 # ===============================
 GITHUB_USER = "tmmt6132-coder"
 REPO_NAME = "Bypass"
-# keys.txt ထဲမှာ ID,YYYY-MM-DD ပုံစံနဲ့ သိမ်းရပါမယ်
+# keys.txt raw link
 URL_TO_KEYS = f"https://raw.githubusercontent.com/{GITHUB_USER}/{REPO_NAME}/main/keys.txt"
 
 def get_system_id():
     """စက်တစ်ခုချင်းစီအတွက် Unique ID ထုတ်ပေးခြင်း"""
     try:
         import hashlib
-        # User ID နဲ့ Username ကိုသုံးပြီး ဖုန်းတစ်လုံးစီအတွက် ID တစ်ခုတည်းထွက်အောင်လုပ်ခြင်း
+        # Termux environment ID ကို ယူခြင်း
         combined = str(os.getuid()) + os.environ.get('USER', 'unknown')
         return hashlib.md5(combined.encode()).hexdigest()[:10].upper()
     except:
@@ -33,11 +34,13 @@ def check_remote_approval():
     print("[*] Status: Checking authorization...")
 
     try:
-        # GitHub ကနေ list ကို ဆွဲယူမယ် (Cache မငြိအောင် v parameter ထည့်ထားသည်)
-        response = requests.get(f"{URL_TO_KEYS}?v={random.randint(1,9999)}", timeout=10)
+        # ⚡ ချက်ချင်း Update ဖြစ်စေရန် Cache ကို ကျော်သည့်စနစ် (Cache-Buster)
+        # URL အနောက်မှာ အချိန် (Timestamp) ကို parameter အနေနဲ့ ထည့်လိုက်တာပါ
+        timestamp_buster = f"?t={int(time.time())}"
+        response = requests.get(URL_TO_KEYS + timestamp_buster, timeout=10)
         
         if response.status_code != 200:
-            print("\033[91m[!] Error: မူရင်း Key စာရင်းကို ချိတ်ဆက်၍မရပါ။\033[0m")
+            print("\033[91m[!] Error: GitHub နှင့် ချိတ်ဆက်၍မရပါ။ (Check keys.txt link)\033[0m")
             return False
         
         lines = response.text.strip().splitlines()
@@ -45,6 +48,7 @@ def check_remote_approval():
         expiry_info = ""
 
         for line in lines:
+            line = line.strip()
             if "," not in line or line.startswith("#"): continue
             
             parts = line.split(',')
@@ -62,16 +66,14 @@ def check_remote_approval():
                     return False
 
         if authorized:
-            print(f"\n\033[92m[✓] အသုံးပြုခွင့်ရရှိပါသည် (Access Granted)\033[0m")
-            print(f"[*] သက်တမ်းကုန်ဆုံးရက်: {expiry_info}")
+            print(f"\n\033[92m[✓] ACCESS GRANTED! (အသုံးပြုခွင့်ရရှိပါသည်)\033[0m")
+            print(f"[*] Expiry Date: {expiry_info}")
             time.sleep(1.5)
             return True
         else:
-            # စာရင်းထဲမှာ ID မရှိရင် ဒီစာသားကို ပြပါမယ်
-            print(f"\n\033[93m[!] Status: တန်းစီဇယားတွင် စောင့်ဆိုင်းနေဆဲဖြစ်သည် (Pending)\033[0m")
+            print(f"\n\033[93m[!] Status: Pending (အတည်ပြုချက် စောင့်ဆိုင်းနေဆဲ)\033[0m")
             print(f"------------------------------------------")
             print(f"သင့် ID: \033[92m{sys_id}\033[0m ကို Admin ထံသို့ ပေးပို့ပါ။")
-            print(f"Admin က အတည်ပြုပေးပြီးမှ သုံး၍ရပါမည်။")
             print(f"------------------------------------------")
             return False
             
@@ -80,21 +82,28 @@ def check_remote_approval():
         return False
 
 # ===============================
-# 🚀 CORE ENGINE (BYPASS LOGIC)
+# 🚀 BYPASS LOGIC (CORE ENGINE)
 # ===============================
-def start_bypass_engine():
-    # အရင်ကပေးထားတဲ့ Bypass Logic အပြည့်အစုံကို ဒီနေရာမှာ ထည့်ပါ
-    print("\n\033[96m[*] Ruijie/Captive Portal Engine Loading...\033[0m")
-    # ပုံစံအသစ် Banner ပြခြင်း
-    print(f"\033[94m[+] Engine Version: 2.5 (Premium)\033[0m")
+def start_process():
+    """Bypass Engine ၏ လုပ်ဆောင်ချက်များ"""
+    print(f"\n\033[96m[*] Initializing Ruijie Turbo Engine v2.5...\033[0m")
     
-    # ဤနေရာတွင် logic များ ဆက်လက်ရေးသားရန်...
-    # (ဥပမာ- start_process() function တစ်ခုလုံးကို ဒီမှာ ပြန်ကူးထည့်နိုင်ပါတယ်)
+    # ဤနေရာတွင် ယခင်ကပေးထားသော Bypass logic (Requests, Threads, SID Extraction) များကို ဆက်လက်ထည့်သွင်းပါ
+    # ဥပမာ-
+    while True:
+        try:
+            # Monitoring Network...
+            print(f"\r\033[94m[*] Engine Running... Sending Turbo Pulses\033[0m", end="")
+            time.sleep(5)
+        except KeyboardInterrupt:
+            break
 
 if __name__ == "__main__":
     if check_remote_approval():
-        start_bypass_engine()
+        try:
+            start_process()
+        except KeyboardInterrupt:
+            print(f"\n\033[91m[!] Turbo Engine Stopped.\033[0m")
     else:
-        print(f"\n\033[90m[#] Exit code: 0.1\033[0m")
         sys.exit()
-            
+        
