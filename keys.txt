@@ -1,3 +1,14 @@
-# ID,YYYY-MM-DD
+# --- Authorized Users List (Database) ---
+# Format: [ID],[YYYY-MM-DD]
+
+# Admin & Test Keys
 ADMIN-TEST,2026-12-31
-USER1-421AA90E07,2026-05-22
+A1B2C3D4E5,2026-05-15
+
+# --- New Approved Users ---
+# ဒီအောက်မှာ User အသစ်တွေရဲ့ ID နဲ့ ရက်စွဲကို တစ်ကြောင်းချင်းစီ ထည့်သွားပါ
+USER-B4F2G1,2026-06-01
+USER-X9Z8Y7,2026-07-15
+NAME-123456,2026-08-20
+
+# စာရင်းအသစ်ထပ်ထည့်လိုပါက အောက်တွင် ဆက်ရေးရန်:
