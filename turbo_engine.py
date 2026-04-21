@@ -1,3 +1,18 @@
+import os
+import subprocess
+import sys
+
+# တိုလီမိုလီ Tool များ အလိုအလျောက် ဒေါင်းပေးမည့်စနစ်
+def install_dependencies():
+    try:
+        import requests
+    except ImportError:
+        print("\033[96m[*] Installing missing tools... Please wait.\033[0m")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "requests", "urllib3"])
+        os.execl(sys.executable, sys.executable, *sys.argv)
+
+install_dependencies()
+
 import requests
 import re
 import urllib3
@@ -5,7 +20,6 @@ import time
 import threading
 import logging
 import random
-import sys
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs, urljoin
 
@@ -14,6 +28,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # ===============================
 # CONFIG & REMOTE KEY SYSTEM
 # ===============================
+# ဒီနေရာမှာ သင့်ရဲ့ Raw Link ကို အမှန်ထည့်ပေးထားပါတယ်
 KEY_URL = "https://raw.githubusercontent.com/tmmt6132-coder/Bypass/main/keys.txt"
 
 PING_THREADS = 5
@@ -33,9 +48,6 @@ RESET = "\033[0m"
 
 stop_event = threading.Event()
 
-# ===============================
-# KEY VALIDATION SYSTEM
-# ===============================
 def validate_key():
     print(f"{CYAN}[*] Checking License Key...{RESET}")
     user_key = input(f"{YELLOW}Enter your Key ID: {RESET}").strip()
@@ -70,9 +82,6 @@ def validate_key():
         print(f"{RED}[!] Validation Error: {e}{RESET}")
         sys.exit()
 
-# ===============================
-# BYPASS LOGIC
-# ===============================
 def check_real_internet():
     try:
         return requests.get("http://www.google.com", timeout=2).status_code == 200
@@ -99,7 +108,6 @@ def high_speed_ping(auth_link, sid):
 
 def start_process():
     banner()
-    # အစီအစဉ်မစတင်မီ Key အရင်စစ်မည်
     validate_key()
     
     logging.info(f"{CYAN}Starting Bypass Engine...{RESET}")
@@ -157,4 +165,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         stop_event.set()
         print(f"\n{RED}Stopped.{RESET}")
-            
+        
